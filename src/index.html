@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PSPDFKit for Web example - Vue</title>
+<!-- Vue library loaded here -->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<!-- PSPDFKit for Web library loaded here -->
+<script type="text/javascript" src="pspdfkit.js"></script>
+<style>
+/* Basic layout styling to be able to show the UI */
+body {
+  height: 100vh;
+}
+
+#app,
+.App-viewer,
+.container {
+  height: 100%;
+}
+</style>
+</head>
+<body>
+<!-- Template for the main app component -->
+<div id="app">
+  <div>
+    <input type="file" id="selectPDF" v-on:change="openPDF" accept="application/pdf" />
+    <span class="error">{{errorMsg}}</span>
+  </div>
+  <div class="App-viewer">
+    <pspdfkit :pdf-url="pdf" :license-key="LICENSE_KEY" :base-url="baseUrl"></pspdfkit>
+  </div>
+</div>
+<script>
+/**
+ * Change the string 'YOUR_LICENSE_KEY_GOES_HERE' by your actual license key from PSPDFKit
+ */
+const LICENSE_KEY = 'BBvVlJkoawl8C9Ae7uXtUfd8a1r-dJc5wE5JKy0WpMaSiu616Jthn627b4XO025S8vH_DOTDPQohi_KfZ44jCIiIIJitvucFJJc8tpfG_lpm1UKSMhnZQs-4AIe-BB-3ragvM7Hu-9XT6nx_7zbVEJKh71vd9U33b0Zmk1D_h3r57lEicWXfPVPDxDa9vS5AxRbdkWcHd23utxqBx3-XfPTXNYlgUI5UdjVvva7MAPKOplm99hGg5DPUAWwaOfJv0VIlQ23vqMOdsBNSsL67o_BV4jzSXcbO2XSFvluqf1cD2DiAAu6RjgoZWsGo_ux-H5c5WB0FlD0Cq8iXOHGqHkbjBc8A-AwsXh5NMRrr7M_sSzXz10zHj0qYKeMdymCD9_zkI6ITjjNAyAeEG-o6TfX6843K8hL8tt320PDJenfq3vGY5bzdRjnfZFUo2ylA';
+/**
+ * PSPDFKit for Web example component
+ */
+const pspdfkit = Vue.component('pspdfkit', {
+  /**
+   * PSPDFKit for Web UI container template
+   */
+  template: '<div class="container"></div>',
+  name: 'pspdfkit',
+  /**
+   * The component receives these parameters:
+   * @pdfUrl: string - URL of the PDF to be loaded.
+   * @licenseKey: string - license key (from the variable set above)
+   * @baseUrl: string - URL from which the PSPDFKit library should get its payload and artifacts.
+   */
+  props: ['pdfUrl', 'licenseKey', 'baseUrl'],
+  _instance: null,
+  /**
+   * We wait until the template has been rendered to load the document into the library.
+   */
+  mounted: function mounted() {
+    this.load()
+  },
+  /**
+   * Our component has these two methods, one to trigger document loading and other to unload and clean up,
+   * so the component is ready to load another document.
+   */
+  methods: {
+    load: function load() {
+      const that = this;
+      PSPDFKit.load({
+        pdf: this.pdfUrl,
+        container: '.container',
+        licenseKey: this.licenseKey,
+        baseUrl: this.baseUrl,
+      })
+        .then(function (instance) {
+          that._instance = instance;
+          that.$parent.errorMsg = ''
+        })
+        .catch(function (err) {
+          PSPDFKit.unload('.container')
+          that.$parent.errorMsg = err.message
+        });
+    },
+    unload: function unload() {
+      if (this._instance) {
+        PSPDFKit.unload(this._instance || '.container')
+        this._instance = null
+      }
+    }
+  },
+  /**
+   * We watch for pdfUrl prop changes, and trigger unloading and loading when there's a new document to load.
+   */
+  watch: {
+    pdfUrl: function pdfUrl() {
+      this.unload()
+      this.load()
+    }
+  },
+  /**
+   * Clean up when the component is unmounted (not needed in this example).
+   */
+  beforeDestroy: function beforeDestroy() {
+    this.unload()
+  }
+})
+
+/**
+ * Container component which includes a button to open a PDF file, and the URL of the example PDF loaded
+ * by default. Its template is inlined in the HTML above.
+ */
+new Vue({
+  components: { pspdfkit: pspdfkit },
+  el: '#app',
+  name: 'pspdfkit-web-example-vue',
+  data: function data() {
+    return {
+      pdf: 'example.pdf',
+      LICENSE_KEY: LICENSE_KEY,
+      baseUrl: '',
+      errorMsg: '',
+    }
+  },
+  methods: {
+    openPDF: function openPDF(e) {
+      this.pdf = window.URL.createObjectURL(e.target.files[0])
+    }
+  }
+})
+</script>
+</body>
+</html>
