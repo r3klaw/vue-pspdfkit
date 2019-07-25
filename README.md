@@ -65,9 +65,3 @@ In order to make the files above available we have to copy them from the `node_m
 ## License
 
 This software is licensed under a [modified BSD license](LICENSE).
-
-## Contributing
-
-Please ensure
-[you have signed our CLA](https://pspdfkit.com/guides/web/current/miscellaneous/contributing/) so that we can
-accept your contributions.
